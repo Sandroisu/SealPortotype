@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+<item
+    android:id="@+id/itemDone"
+    android:icon="@drawable/ic_done_black_24dp"
+    android:title="Готово"
+    android:visible="false"
+    app:showAsAction="ifRoom"/>
+    <item
+        android:id="@+id/itemErase"
+        android:title="Стереть"/>
+
+    <item
+        android:id="@+id/itemPlus"
+        android:title="Увеличить"/>
+
+    <item
+        android:id="@+id/itemMinus"
+        android:title="Уменьшить"/>
+</menu>

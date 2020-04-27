@@ -16,6 +16,7 @@ import java.io.ByteArrayOutputStream;
 
 public class DrawingView extends View {
 
+    private int SIGNATURE_WIDTH = 6;
     private Bitmap mBitmap;
     private Canvas mCanvas;
     private Path mPath;
@@ -26,10 +27,8 @@ public class DrawingView extends View {
     private Paint mPaint;
     private IRunFinishCallback mIRunFinishCallback;
 
-    public DrawingView(Context c, Paint paint, Bitmap bitmap) {
+    public DrawingView(Context c) {
         super(c);
-        mPaint = paint;
-        mBitmap = bitmap;
         mIRunFinishCallback = (IRunFinishCallback) c;
         mPath = new Path();
         mBitmapPaint = new Paint(Paint.DITHER_FLAG);
@@ -40,14 +39,26 @@ public class DrawingView extends View {
         circlePaint.setStyle(Paint.Style.STROKE);
         circlePaint.setStrokeJoin(Paint.Join.BEVEL);
         circlePaint.setStrokeWidth(2);
+        mPaint = new Paint();
+        mPaint.setAntiAlias(true);
+        mPaint.setDither(true);
+        mPaint.setColor(Color.BLACK);
+        mPaint.setStyle(Paint.Style.STROKE);
+        mPaint.setStrokeJoin(Paint.Join.ROUND);
+        mPaint.setStrokeCap(Paint.Cap.ROUND);
+        mPaint.setStrokeWidth(6);
     }
 
     @Override
     protected void onSizeChanged(int w, int h, int oldw, int oldh) {
         super.onSizeChanged(w, h, oldw, oldh);
+        if (mBitmap==null){
+            createBitmap(w, h);
+        }
+    }
 
+    public void createBitmap(int w, int h){
         mBitmap = Bitmap.createBitmap(w, h, Bitmap.Config.ARGB_8888);
-
         mCanvas = new Canvas(mBitmap);
         invalidate();
     }
@@ -61,11 +72,10 @@ public class DrawingView extends View {
                 mBitmap.compress(Bitmap.CompressFormat.PNG, 100, byteArrayOutputStream);
                 byte[] byteArray = byteArrayOutputStream.toByteArray();
                 String encoded = Base64.encodeToString(byteArray, Base64.DEFAULT);
-                mIRunFinishCallback.onFinishThread(encoded);
+                mIRunFinishCallback.onFinishThread(encoded, mBitmap);
 
             }
         });
-
     }
 
     @Override
@@ -109,9 +119,6 @@ public class DrawingView extends View {
         mPath.reset();
     }
 
-    public Bitmap getBitmap() {
-        return mBitmap;
-    }
 
     @Override
     public boolean onTouchEvent(MotionEvent event) {
@@ -126,6 +133,7 @@ public class DrawingView extends View {
             case MotionEvent.ACTION_MOVE:
                 touch_move(x, y);
                 invalidate();
+                mIRunFinishCallback.onSign();
                 break;
             case MotionEvent.ACTION_UP:
                 touch_up();
@@ -133,6 +141,25 @@ public class DrawingView extends View {
                 break;
         }
         return true;
+    }
+
+    public void plusStroke() {
+        SIGNATURE_WIDTH++;
+        mPaint.setStrokeWidth(SIGNATURE_WIDTH);
+    }
+
+    public void minusStroke() {
+        SIGNATURE_WIDTH--;
+        mPaint.setStrokeWidth(SIGNATURE_WIDTH);
+    }
+
+    public void setBitmap(Bitmap bitmap) {
+        if (bitmap==null){
+            return;
+        }
+        mBitmap = bitmap.copy(Bitmap.Config.ARGB_8888, true);
+        mCanvas = new Canvas(mBitmap);
+        invalidate();
     }
 }
 
