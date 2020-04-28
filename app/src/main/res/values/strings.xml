@@ -1,3 +1,13 @@
-<resources>
-    <string name="app_name">SealPortotype</string>
+<resources >
+    <string name="app_name">SignaturePrototype</string>
+    <string name="sign">Подпись</string>
+    <string name="sign_with_colon">Подпись:</string>
+    <string name="delete">Удалить</string>
+    <string name="ready">Готово</string>
+    <string name="erase">Стереть</string>
+    <string name="already_granted">Необходимые разрешения получены</string>
+    <string name="signature_saved">Подпись сохранена</string>
+    <string name="document_signature">Подпись на документе</string>
+    <string name="ok">Ок</string>
+    <string name="exit">Выход</string>
 </resources>

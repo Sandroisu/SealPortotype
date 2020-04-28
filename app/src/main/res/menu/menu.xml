@@ -4,18 +4,11 @@
 <item
     android:id="@+id/itemDone"
     android:icon="@drawable/ic_done_black_24dp"
-    android:title="Готово"
+    android:title="@string/ready"
     android:visible="false"
     app:showAsAction="ifRoom"/>
     <item
         android:id="@+id/itemErase"
-        android:title="Стереть"/>
+        android:title="@string/erase"/>
 
-    <item
-        android:id="@+id/itemPlus"
-        android:title="Увеличить"/>
-
-    <item
-        android:id="@+id/itemMinus"
-        android:title="Уменьшить"/>
 </menu>

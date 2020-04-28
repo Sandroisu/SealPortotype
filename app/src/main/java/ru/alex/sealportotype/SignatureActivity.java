@@ -5,7 +5,6 @@ import android.content.Intent;
 import android.content.pm.ActivityInfo;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
-import android.graphics.Paint;
 import android.os.Bundle;
 import android.util.Base64;
 import android.view.Menu;
@@ -24,8 +23,8 @@ import java.util.Objects;
 import static ru.alex.sealportotype.MainActivity.EDIT;
 
 
-public class SignatureActivity extends AppCompatActivity implements IRunFinishCallback {
-    public final static String FILE_NAME = "content.txt";
+public class SignatureActivity extends AppCompatActivity implements IFinishCallback {
+    public final static String FILE_NAME = "base64.txt";
     private DrawingView dv;
     private MenuItem itemDone;
 
@@ -35,15 +34,14 @@ public class SignatureActivity extends AppCompatActivity implements IRunFinishCa
         super.onCreate(savedInstanceState);
         boolean mode = getIntent().getBooleanExtra(EDIT, false);
         Objects.requireNonNull(getSupportActionBar()).setDisplayHomeAsUpEnabled(true);
-        getSupportActionBar().setTitle("Подпись на документе");
+        getSupportActionBar().setTitle(R.string.document_signature);
         setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
         dv = new DrawingView(this);
         if (mode) {
-            dv.setBitmap(openText());
+            dv.setBitmap(restoreSignFromBase64());
         }
         setContentView(dv);
     }
-
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
@@ -58,12 +56,6 @@ public class SignatureActivity extends AppCompatActivity implements IRunFinishCa
             case R.id.itemDone:
                 dv.getBase64();
                 break;
-            case R.id.itemPlus:
-                dv.plusStroke();
-                break;
-            case R.id.itemMinus:
-                dv.minusStroke();
-                break;
             case R.id.itemErase:
                 dv.createBitmap(getWindow().getDecorView().getWidth(), getWindow().getDecorView().getHeight());
                 File file = getFilesDir();
@@ -74,16 +66,14 @@ public class SignatureActivity extends AppCompatActivity implements IRunFinishCa
             case android.R.id.home:
                 onBackPressed();
                 break;
-
         }
         return super.onOptionsItemSelected(item);
     }
 
     @Override
     public void onFinishThread(String base64, Bitmap bitmap) {
-        saveText(base64);
+        saveBase64InFile(base64);
         Intent intent = new Intent(this, MainActivity.class);
-        intent.putExtra("Signature", "signature");
         startActivity(intent);
     }
 
@@ -94,13 +84,12 @@ public class SignatureActivity extends AppCompatActivity implements IRunFinishCa
         }
     }
 
-
-    public void saveText(String base64) {
+    public void saveBase64InFile(String base64) {
         FileOutputStream fos = null;
         try {
             fos = openFileOutput(FILE_NAME, MODE_PRIVATE);
             fos.write(base64.getBytes());
-            Toast.makeText(this, "Подпись сохранена", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, R.string.signature_saved, Toast.LENGTH_SHORT).show();
         } catch (IOException ex) {
             Toast.makeText(this, ex.getMessage(), Toast.LENGTH_SHORT).show();
         } finally {
@@ -108,13 +97,12 @@ public class SignatureActivity extends AppCompatActivity implements IRunFinishCa
                 if (fos != null)
                     fos.close();
             } catch (IOException ex) {
-
                 Toast.makeText(this, ex.getMessage(), Toast.LENGTH_SHORT).show();
             }
         }
     }
 
-    public Bitmap openText() {
+    public Bitmap restoreSignFromBase64() {
         Bitmap bitmap = null;
         FileInputStream fin = null;
         try {
@@ -124,9 +112,7 @@ public class SignatureActivity extends AppCompatActivity implements IRunFinishCa
             String text = new String(bytes);
             byte[] decodedString = Base64.decode(text, Base64.DEFAULT);
             bitmap = BitmapFactory.decodeByteArray(decodedString, 0, decodedString.length);
-
-        } catch (IOException ex) {
-            Toast.makeText(this, ex.getMessage(), Toast.LENGTH_SHORT).show();
+        } catch (IOException ignored) {
         } finally {
 
             try {

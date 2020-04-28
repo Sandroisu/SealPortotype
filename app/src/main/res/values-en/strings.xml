@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">SignaturePrototype</string>
+    <string name="sign">Signature</string>
+    <string name="sign_with_colon">Signature:</string>
+    <string name="delete">Delete</string>
+    <string name="ready">Ready</string>
+    <string name="erase">Clear</string>
+    <string name="already_granted">Permissions granted</string>
+    <string name="signature_saved">Signature saved</string>
+    <string name="document_signature">Signature on the document</string>
+    <string name="ok">Ok</string>
+    <string name="exit">Exit</string>
+
+</resources>

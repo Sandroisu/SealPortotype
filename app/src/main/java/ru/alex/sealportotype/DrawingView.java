@@ -25,11 +25,14 @@ public class DrawingView extends View {
     private Path circlePath;
 
     private Paint mPaint;
-    private IRunFinishCallback mIRunFinishCallback;
+    private IFinishCallback mFinishCallback;
+
+    private float mX, mY;
+    private static final float TOUCH_TOLERANCE = 4;
 
     public DrawingView(Context c) {
         super(c);
-        mIRunFinishCallback = (IRunFinishCallback) c;
+        mFinishCallback = (IFinishCallback) c;
         mPath = new Path();
         mBitmapPaint = new Paint(Paint.DITHER_FLAG);
         circlePaint = new Paint();
@@ -72,8 +75,7 @@ public class DrawingView extends View {
                 mBitmap.compress(Bitmap.CompressFormat.PNG, 100, byteArrayOutputStream);
                 byte[] byteArray = byteArrayOutputStream.toByteArray();
                 String encoded = Base64.encodeToString(byteArray, Base64.DEFAULT);
-                mIRunFinishCallback.onFinishThread(encoded, mBitmap);
-
+                mFinishCallback.onFinishThread(encoded, mBitmap);
             }
         });
     }
@@ -86,9 +88,6 @@ public class DrawingView extends View {
         canvas.drawPath(mPath, mPaint);
         canvas.drawPath(circlePath, circlePaint);
     }
-
-    private float mX, mY;
-    private static final float TOUCH_TOLERANCE = 4;
 
     private void touch_start(float x, float y) {
         mPath.reset();
@@ -119,7 +118,6 @@ public class DrawingView extends View {
         mPath.reset();
     }
 
-
     @Override
     public boolean onTouchEvent(MotionEvent event) {
         float x = event.getX();
@@ -133,7 +131,7 @@ public class DrawingView extends View {
             case MotionEvent.ACTION_MOVE:
                 touch_move(x, y);
                 invalidate();
-                mIRunFinishCallback.onSign();
+                mFinishCallback.onSign();
                 break;
             case MotionEvent.ACTION_UP:
                 touch_up();
