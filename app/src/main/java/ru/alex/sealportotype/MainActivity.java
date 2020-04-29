@@ -1,6 +1,10 @@
 package ru.alex.sealportotype;
 
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
+
+import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
@@ -8,6 +12,7 @@ import android.os.Bundle;
 import android.util.Base64;
 import android.view.View;
 import android.widget.Button;
+import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.RelativeLayout;
 
@@ -20,56 +25,60 @@ import static ru.alex.sealportotype.SignatureActivity.FILE_NAME;
 public class MainActivity extends AppCompatActivity {
     public static final String EDIT = "edit_mode";
     private ImageView ivSign;
-    private Button btnSign;
-    private RelativeLayout rlSign;
+    private ImageButton btnDelete;
+    private boolean isEdit = false;
 
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-
-
-        btnSign = findViewById(R.id.btnSign);
         ivSign = findViewById(R.id.ivSign);
-        rlSign = findViewById(R.id.rlSign);
-        Button btnDelete = findViewById(R.id.btnDelete);
+        btnDelete = findViewById(R.id.btnDelete);
         btnDelete.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                File file = getFilesDir();
-                File file1 = new File(file, FILE_NAME);
-                boolean deleted = file1.delete();
-                rlSign.setVisibility(View.GONE);
-                btnSign.setVisibility(View.VISIBLE);
+                new AlertDialog.Builder(MainActivity.this)
+                        .setTitle(R.string.signature_delete)
+                        .setMessage(R.string.delete_confirmation)
+                        .setPositiveButton(R.string.ok, new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialog, int which) {
+                                File file = getFilesDir();
+                                File file1 = new File(file, FILE_NAME);
+                                boolean deleted = file1.delete();
+                                btnDelete.setVisibility(View.GONE);
+                                ivSign.setImageDrawable(getDrawable(R.drawable.ic_pen));
+                            }
+                        })
+                        .setNegativeButton(R.string.exit, new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialog, int which) {
+                                dialog.dismiss();
+                            }
+                        })
+                        .create().show();
             }
         });
         final Intent intent = new Intent(this, SignatureActivity.class);
         ivSign.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                intent.putExtra(EDIT, true);
+                intent.putExtra(EDIT, isEdit);
                 startActivity(intent);
             }
         });
-        btnSign.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
 
-                startActivity(intent);
-
-            }
-        });
     }
 
     @Override
     protected void onResume() {
         super.onResume();
-        getSignFromFile(ivSign, rlSign, btnSign);
+        getSignFromFile(ivSign);
 
     }
 
-    public void getSignFromFile(final ImageView view, RelativeLayout layout, Button signBut) {
+    public void getSignFromFile(final ImageView view) {
         FileInputStream fin = null;
         try {
             fin = openFileInput(FILE_NAME);
@@ -79,9 +88,12 @@ public class MainActivity extends AppCompatActivity {
             byte[] decodedString = Base64.decode(text, Base64.DEFAULT);
             Bitmap bitmap = BitmapFactory.decodeByteArray(decodedString, 0, decodedString.length);
             view.setImageBitmap(bitmap);
+            btnDelete.setVisibility(View.VISIBLE);
+            isEdit=true;
         } catch (IOException ex) {
-            layout.setVisibility(View.GONE);
-            signBut.setVisibility(View.VISIBLE);
+            view.setImageDrawable(getDrawable(R.drawable.ic_pen));
+            btnDelete.setVisibility(View.GONE);
+            isEdit=false;
         } finally {
 
             try {

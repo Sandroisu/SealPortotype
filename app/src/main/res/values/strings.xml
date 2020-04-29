@@ -10,4 +10,6 @@
     <string name="document_signature">Подпись на документе</string>
     <string name="ok">Ок</string>
     <string name="exit">Выход</string>
+    <string name="signature_delete">Удаление подписи</string>
+    <string name="delete_confirmation">Вы уверены что хотите удалить подпись?</string>
 </resources>
