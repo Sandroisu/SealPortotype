@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <declare-styleable name="SignatureField">
+        <attr name="src" format="string" />
+        <attr name="label" format="string" />
+        <attr name="removeIcon" format="reference" />
+        <attr name="defaultSrc" format="reference" />
+    </declare-styleable>
+</resources>

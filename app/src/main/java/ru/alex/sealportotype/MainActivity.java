@@ -1,108 +1,71 @@
 package ru.alex.sealportotype;
 
+import androidx.annotation.Nullable;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 
-import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
 import android.os.Bundle;
-import android.util.Base64;
-import android.view.View;
-import android.widget.Button;
-import android.widget.ImageButton;
-import android.widget.ImageView;
-import android.widget.RelativeLayout;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
-
-import static ru.alex.sealportotype.SignatureActivity.FILE_NAME;
-
-public class MainActivity extends AppCompatActivity {
-    public static final String EDIT = "edit_mode";
-    private ImageView ivSign;
-    private ImageButton btnDelete;
-    private boolean isEdit = false;
-
+public class MainActivity extends AppCompatActivity
+        implements OnSignatureListener {
+    private SignatureField mSignatureField;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        ivSign = findViewById(R.id.ivSign);
-        btnDelete = findViewById(R.id.btnDelete);
-        btnDelete.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                new AlertDialog.Builder(MainActivity.this)
-                        .setTitle(R.string.signature_delete)
-                        .setMessage(R.string.delete_confirmation)
-                        .setPositiveButton(R.string.ok, new DialogInterface.OnClickListener() {
-                            @Override
-                            public void onClick(DialogInterface dialog, int which) {
-                                File file = getFilesDir();
-                                File file1 = new File(file, FILE_NAME);
-                                boolean deleted = file1.delete();
-                                btnDelete.setVisibility(View.GONE);
-                                ivSign.setImageDrawable(getDrawable(R.drawable.ic_pen));
-                            }
-                        })
-                        .setNegativeButton(R.string.exit, new DialogInterface.OnClickListener() {
-                            @Override
-                            public void onClick(DialogInterface dialog, int which) {
-                                dialog.dismiss();
-                            }
-                        })
-                        .create().show();
-            }
-        });
-        final Intent intent = new Intent(this, SignatureActivity.class);
-        ivSign.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                intent.putExtra(EDIT, isEdit);
-                startActivity(intent);
-            }
-        });
 
+        mSignatureField = findViewById(R.id.signature);
+        mSignatureField.setOnSignatureListener(this);
     }
 
     @Override
-    protected void onResume() {
-        super.onResume();
-        getSignFromFile(ivSign);
+    public void onClickSignature(int mode, String signature) {
+        Intent intent = new Intent(this, SignatureActivity.class);
+        intent.putExtra(OnSignatureListener.MODE_NAME, mode);
+        intent.putExtra(OnSignatureListener.TITLE, "Подпись потребителя");
 
-    }
+        switch (mode) {
+            case OnSignatureListener.ADD:
+                startActivityForResult(intent, SignatureActivity.SIGNATURE_REQUEST_CODE);
+                break;
 
-    public void getSignFromFile(final ImageView view) {
-        FileInputStream fin = null;
-        try {
-            fin = openFileInput(FILE_NAME);
-            byte[] bytes = new byte[fin.available()];
-            fin.read(bytes);
-            String text = new String(bytes);
-            byte[] decodedString = Base64.decode(text, Base64.DEFAULT);
-            Bitmap bitmap = BitmapFactory.decodeByteArray(decodedString, 0, decodedString.length);
-            view.setImageBitmap(bitmap);
-            btnDelete.setVisibility(View.VISIBLE);
-            isEdit=true;
-        } catch (IOException ex) {
-            view.setImageDrawable(getDrawable(R.drawable.ic_pen));
-            btnDelete.setVisibility(View.GONE);
-            isEdit=false;
-        } finally {
+            case OnSignatureListener.UPDATE:
+                intent.putExtra(OnSignatureListener.IMAGE, signature);
+                startActivityForResult(intent, SignatureActivity.SIGNATURE_REQUEST_CODE);
+                break;
 
-            try {
-                if (fin != null)
-                    fin.close();
-            } catch (IOException ignored) {
-            }
+            case OnSignatureListener.REMOVE:
+                confirmDialog("Очистка подписи", "Вы уверены что хотите удалить подпись?", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        // таким образом очищаем содержимое
+                        mSignatureField.setSrc(null);
+                    }
+                });
+                break;
         }
     }
 
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+
+        if(requestCode == SignatureActivity.SIGNATURE_REQUEST_CODE && resultCode == RESULT_OK) {
+            String signature = data.getStringExtra(OnSignatureListener.IMAGE);
+            mSignatureField.setSrc(signature);
+        }
+    }
+
+    private void confirmDialog(String title, String message, DialogInterface.OnClickListener listener) {
+        AlertDialog.Builder dialog = new AlertDialog.Builder(MainActivity.this);
+        dialog.setTitle(title);
+        dialog.setMessage(message);
+        dialog.setPositiveButton("Да", listener);
+        dialog.setNegativeButton("Нет", null);
+        dialog.create().show();
+    }
 }
 

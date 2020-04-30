@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="utf-8"?>
+<merge xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical">
+
+        <TextView
+            android:id="@+id/tvSignatureLabel"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/sign_with_colon"
+            android:layout_marginBottom="8dp"/>
+
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+
+            <ImageView
+                android:id="@+id/ivSignature"
+                android:layout_width="150dp"
+                android:layout_height="100dp"
+                android:src="@android:drawable/ic_menu_edit"
+                android:scaleType="fitCenter"
+                android:contentDescription="@string/sign"
+                android:layout_alignParentStart="true"/>
+
+            <ImageButton
+                android:id="@+id/btnSignatureClear"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:src="@android:drawable/ic_menu_close_clear_cancel"
+                android:background="@android:color/transparent"
+                android:contentDescription="Удаление подписи"
+                android:visibility="gone"
+                tools:visibility="visible"
+                android:layout_alignParentEnd="true" />
+
+        </RelativeLayout>
+
+    </LinearLayout>
+
+
+
+</merge>

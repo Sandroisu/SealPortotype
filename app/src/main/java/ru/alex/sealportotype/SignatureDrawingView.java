@@ -6,17 +6,15 @@ import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Path;
-import android.os.Handler;
-import android.util.Base64;
 import android.view.MotionEvent;
 import android.view.View;
 
-import java.io.ByteArrayOutputStream;
+/**
+ * Контейнер для отрисовки подписи
+ */
+public class SignatureDrawingView extends View {
 
-
-public class DrawingView extends View {
-
-    private int SIGNATURE_WIDTH = 6;
+    private int mPenWidth;
     private Bitmap mBitmap;
     private Canvas mCanvas;
     private Path mPath;
@@ -25,14 +23,24 @@ public class DrawingView extends View {
     private Path circlePath;
 
     private Paint mPaint;
-    private IFinishCallback mFinishCallback;
+    private OnDrawingListener mListener;
 
     private float mX, mY;
     private static final float TOUCH_TOLERANCE = 4;
 
-    public DrawingView(Context c) {
-        super(c);
-        mFinishCallback = (IFinishCallback) c;
+    public SignatureDrawingView(Context context) {
+        this(context, 12);
+    }
+
+    public SignatureDrawingView(Context context, int penWidth) {
+        super(context);
+
+        mPenWidth = penWidth;
+
+        if(context instanceof  OnDrawingListener) {
+            mListener = (OnDrawingListener) context;
+        }
+
         mPath = new Path();
         mBitmapPaint = new Paint(Paint.DITHER_FLAG);
         circlePaint = new Paint();
@@ -49,7 +57,7 @@ public class DrawingView extends View {
         mPaint.setStyle(Paint.Style.STROKE);
         mPaint.setStrokeJoin(Paint.Join.ROUND);
         mPaint.setStrokeCap(Paint.Cap.ROUND);
-        mPaint.setStrokeWidth(6);
+        mPaint.setStrokeWidth(mPenWidth);
     }
 
     @Override
@@ -66,18 +74,8 @@ public class DrawingView extends View {
         invalidate();
     }
 
-    public void getBase64() {
-        Handler h = new Handler();
-        h.post(new Runnable() {
-            @Override
-            public void run() {
-                ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
-                mBitmap.compress(Bitmap.CompressFormat.PNG, 100, byteArrayOutputStream);
-                byte[] byteArray = byteArrayOutputStream.toByteArray();
-                String encoded = Base64.encodeToString(byteArray, Base64.DEFAULT);
-                mFinishCallback.onFinishThread(encoded, mBitmap);
-            }
-        });
+    public Bitmap getBitmap() {
+        return mBitmap;
     }
 
     @Override
@@ -131,7 +129,9 @@ public class DrawingView extends View {
             case MotionEvent.ACTION_MOVE:
                 touch_move(x, y);
                 invalidate();
-                mFinishCallback.onSign();
+                if(mListener != null) {
+                    mListener.onWrite();
+                }
                 break;
             case MotionEvent.ACTION_UP:
                 touch_up();
@@ -141,23 +141,20 @@ public class DrawingView extends View {
         return true;
     }
 
-    public void plusStroke() {
-        SIGNATURE_WIDTH++;
-        mPaint.setStrokeWidth(SIGNATURE_WIDTH);
-    }
-
-    public void minusStroke() {
-        SIGNATURE_WIDTH--;
-        mPaint.setStrokeWidth(SIGNATURE_WIDTH);
-    }
-
     public void setBitmap(Bitmap bitmap) {
-        if (bitmap==null){
+        if (bitmap == null) {
             return;
         }
         mBitmap = bitmap.copy(Bitmap.Config.ARGB_8888, true);
         mCanvas = new Canvas(mBitmap);
         invalidate();
+    }
+
+    public interface OnDrawingListener {
+        /**
+         * обработчик написания (как только начинают водить пальцем по экрану)
+         */
+        void onWrite();
     }
 }
 

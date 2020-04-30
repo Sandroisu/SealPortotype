@@ -4,49 +4,61 @@ import android.annotation.SuppressLint;
 import android.content.Intent;
 import android.content.pm.ActivityInfo;
 import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
+import android.os.AsyncTask;
 import android.os.Bundle;
-import android.util.Base64;
+import android.util.DisplayMetrics;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.IOException;
 import java.util.Objects;
 
-import static ru.alex.sealportotype.MainActivity.EDIT;
+public class SignatureActivity extends AppCompatActivity
+        implements SignatureDrawingView.OnDrawingListener {
+    public final static int SIGNATURE_REQUEST_CODE = 1;
 
-
-public class SignatureActivity extends AppCompatActivity implements IFinishCallback {
-    public final static String FILE_NAME = "base64.txt";
-    private DrawingView dv;
-    private MenuItem itemDone;
+    private SignatureDrawingView mSignatureDrawingView;
+    private MenuItem mItemDone;
+    private BitmapToStringTask mBitmapToStringTask;
 
     @SuppressLint("SourceLockedOrientationActivity")
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        boolean mode = getIntent().getBooleanExtra(EDIT, false);
-        Objects.requireNonNull(getSupportActionBar()).setDisplayHomeAsUpEnabled(true);
-        getSupportActionBar().setTitle(R.string.document_signature);
+
+        mSignatureDrawingView = new SignatureDrawingView(this);
+        setContentView(mSignatureDrawingView);
+
         setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
-        dv = new DrawingView(this);
-        if (mode) {
-            dv.setBitmap(restoreSignFromBase64());
+
+        String title = getIntent().getStringExtra(OnSignatureListener.TITLE);
+        Objects.requireNonNull(getSupportActionBar()).setDisplayHomeAsUpEnabled(true);
+        getSupportActionBar().setTitle(title);
+    }
+
+    @Override
+    protected void onStart() {
+        super.onStart();
+
+        if(getIntent().hasExtra(OnSignatureListener.IMAGE)) {
+            String base64 = getIntent().getStringExtra(OnSignatureListener.IMAGE);
+            Bitmap bitmap = BitmapUtil.toBitmap(base64);
+
+            DisplayMetrics displayMetrics = new DisplayMetrics();
+            getWindowManager().getDefaultDisplay().getMetrics(displayMetrics);
+            int width = displayMetrics.widthPixels;
+
+            Bitmap resizeBmp = BitmapUtil.scaleToFitWidth(bitmap, width);
+            mSignatureDrawingView.setBitmap(resizeBmp);
         }
-        setContentView(dv);
     }
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         getMenuInflater().inflate(R.menu.menu, menu);
-        itemDone = menu.findItem(R.id.itemDone);
+        mItemDone = menu.findItem(R.id.itemDone);
         return super.onCreateOptionsMenu(menu);
     }
 
@@ -54,15 +66,18 @@ public class SignatureActivity extends AppCompatActivity implements IFinishCallb
     public boolean onOptionsItemSelected(@NonNull MenuItem item) {
         switch (item.getItemId()) {
             case R.id.itemDone:
-                dv.getBase64();
+                Bitmap bitmap = mSignatureDrawingView.getBitmap();
+                if(bitmap != null) {
+                    mBitmapToStringTask = new BitmapToStringTask();
+                    mBitmapToStringTask.execute(bitmap);
+                }
                 break;
+
             case R.id.itemErase:
-                dv.createBitmap(getWindow().getDecorView().getWidth(), getWindow().getDecorView().getHeight());
-                File file = getFilesDir();
-                File file1 = new File(file, FILE_NAME);
-                boolean deleted = file1.delete();
-                itemDone.setVisible(false);
+                mSignatureDrawingView.createBitmap(getWindow().getDecorView().getWidth(), getWindow().getDecorView().getHeight());
+                mItemDone.setVisible(false);
                 break;
+
             case android.R.id.home:
                 onBackPressed();
                 break;
@@ -71,57 +86,35 @@ public class SignatureActivity extends AppCompatActivity implements IFinishCallb
     }
 
     @Override
-    public void onFinishThread(String base64, Bitmap bitmap) {
-        saveBase64InFile(base64);
-        Intent intent = new Intent(this, MainActivity.class);
-        startActivity(intent);
+    public void onWrite() {
+        if (!mItemDone.isVisible()) {
+            mItemDone.setVisible(true);
+        }
     }
 
     @Override
-    public void onSign() {
-        if (!itemDone.isVisible()) {
-            itemDone.setVisible(true);
+    protected void onDestroy() {
+        if(mBitmapToStringTask != null) {
+            mBitmapToStringTask.cancel(true);
         }
+        super.onDestroy();
     }
 
-    public void saveBase64InFile(String base64) {
-        FileOutputStream fos = null;
-        try {
-            fos = openFileOutput(FILE_NAME, MODE_PRIVATE);
-            fos.write(base64.getBytes());
-            Toast.makeText(this, R.string.signature_saved, Toast.LENGTH_SHORT).show();
-        } catch (IOException ex) {
-            Toast.makeText(this, ex.getMessage(), Toast.LENGTH_SHORT).show();
-        } finally {
-            try {
-                if (fos != null)
-                    fos.close();
-            } catch (IOException ex) {
-                Toast.makeText(this, ex.getMessage(), Toast.LENGTH_SHORT).show();
-            }
+    private class BitmapToStringTask extends AsyncTask<Bitmap, Void, String> {
+
+        @Override
+        protected String doInBackground(Bitmap... bitmaps) {
+            Bitmap resize = BitmapUtil.scaleToFitWidth(bitmaps[0], BitmapUtil.QUALITY_240p);
+            return BitmapUtil.toBase64(resize, BitmapUtil.IMAGE_QUALITY);
+        }
+
+        @Override
+        protected void onPostExecute(String s) {
+            Intent intent = new Intent();
+            intent.putExtra(OnSignatureListener.IMAGE, s);
+
+            setResult(RESULT_OK,intent);
+            finish();
         }
     }
-
-    public Bitmap restoreSignFromBase64() {
-        Bitmap bitmap = null;
-        FileInputStream fin = null;
-        try {
-            fin = openFileInput(FILE_NAME);
-            byte[] bytes = new byte[fin.available()];
-            fin.read(bytes);
-            String text = new String(bytes);
-            byte[] decodedString = Base64.decode(text, Base64.DEFAULT);
-            bitmap = BitmapFactory.decodeByteArray(decodedString, 0, decodedString.length);
-        } catch (IOException ignored) {
-        } finally {
-
-            try {
-                if (fin != null)
-                    fin.close();
-            } catch (IOException ignored) {
-            }
-        }
-        return bitmap;
-    }
-
 }
