@@ -100,6 +100,7 @@ public class SignatureActivity extends AppCompatActivity
         super.onDestroy();
     }
 
+    @SuppressLint("StaticFieldLeak")
     private class BitmapToStringTask extends AsyncTask<Bitmap, Void, String> {
 
         @Override
