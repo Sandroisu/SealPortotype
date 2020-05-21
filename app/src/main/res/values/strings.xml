@@ -12,4 +12,6 @@
     <string name="exit">Выход</string>
     <string name="signature_delete">Удаление подписи</string>
     <string name="delete_confirmation">Вы уверены что хотите удалить подпись?</string>
+    <string name="yes">Да</string>
+    <string name="no">Нет</string>
 </resources>

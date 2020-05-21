@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">SignaturePrototype</string>
+    <string name="sign">Signature</string>
+    <string name="sign_with_colon">Signature:</string>
+    <string name="delete">Delete</string>
+    <string name="ready">Done</string>
+    <string name="erase">Delete</string>
+    <string name="already_granted">" Required permissions received"</string>
+    <string name="signature_saved">Signature saved</string>
+    <string name="document_signature">Signature on the document</string>
+    <string name="ok">Ok</string>
+    <string name="exit">Exit</string>
+    <string name="signature_delete">Delete signature</string>
+    <string name="delete_confirmation">Are you sure you want to delete signature</string>
+    <string name="yes">Yes</string>
+    <string name="no">No</string>
+</resources>

@@ -151,9 +151,7 @@ public class SignatureDrawingView extends View {
     }
 
     public interface OnDrawingListener {
-        /**
-         * обработчик написания (как только начинают водить пальцем по экрану)
-         */
+
         void onWrite();
     }
 }

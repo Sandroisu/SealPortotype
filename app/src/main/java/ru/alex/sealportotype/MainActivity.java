@@ -25,7 +25,7 @@ public class MainActivity extends AppCompatActivity
     public void onClickSignature(int mode, String signature) {
         Intent intent = new Intent(this, SignatureActivity.class);
         intent.putExtra(OnSignatureListener.MODE_NAME, mode);
-        intent.putExtra(OnSignatureListener.TITLE, "Подпись потребителя");
+        intent.putExtra(OnSignatureListener.TITLE, getString(R.string.sign));
 
         switch (mode) {
             case OnSignatureListener.ADD:
@@ -38,7 +38,7 @@ public class MainActivity extends AppCompatActivity
                 break;
 
             case OnSignatureListener.REMOVE:
-                confirmDialog("Очистка подписи", "Вы уверены что хотите удалить подпись?", new DialogInterface.OnClickListener() {
+                confirmDialog(getString(R.string.signature_delete), getString(R.string.delete_confirmation), new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
                         // таким образом очищаем содержимое
@@ -63,8 +63,8 @@ public class MainActivity extends AppCompatActivity
         AlertDialog.Builder dialog = new AlertDialog.Builder(MainActivity.this);
         dialog.setTitle(title);
         dialog.setMessage(message);
-        dialog.setPositiveButton("Да", listener);
-        dialog.setNegativeButton("Нет", null);
+        dialog.setPositiveButton(getString(R.string.yes), listener);
+        dialog.setNegativeButton(getString(R.string.no), null);
         dialog.create().show();
     }
 }

@@ -18,11 +18,12 @@ public class BitmapUtil {
     public final static int IMAGE_QUALITY = 60;
 
     /**
-     * создания изображения для кэша
-     * @param bitmap Изображение
+     * Creating an image for the cache
+     *
+     * @param bitmap  image
      * @param quality качество создаваемого изображения в процентах от 0 до 100
-     * @param p Высота изображения. Использовать одно из полей QUALITY_[number]p
-     * @return массив байтов
+     * @param p       Image height. Use one of the fields QUALITY_ [number]
+     * @return byte array
      */
     public static byte[] cacheBitmap(Bitmap bitmap, int quality, int p) {
         Bitmap resizeBmp = scaleToFitWidth(bitmap, p);
@@ -31,40 +32,25 @@ public class BitmapUtil {
         return bos.toByteArray();
     }
 
-    /**
-     * создания изображения для кэша
-     * @param bytes массив байтов
-     * @param quality качество создаваемого изображения в процентах от 0 до 100
-     * @param p Высота изображения. Использовать одно из полей QUALITY_[number]p
-     * @return массив байтов
-     */
-    public static byte[] cacheBitmap(byte[] bytes, int quality, int p) {
-        Bitmap bitmap = BitmapFactory.decodeByteArray(bytes, 0, bytes.length);
-        return cacheBitmap(bitmap, quality, p);
-    }
-
     // Scale and maintain aspect ratio given a desired width
     // BitmapScale.scaleToFitWidth(bitmap, 100);
-    public static Bitmap scaleToFitWidth(Bitmap b, int width)
-    {
+    public static Bitmap scaleToFitWidth(Bitmap b, int width) {
         float factor = width / (float) b.getWidth();
         return Bitmap.createScaledBitmap(b, width, (int) (b.getHeight() * factor), true);
     }
 
-
     // Scale and maintain aspect ratio given a desired height
     // BitmapScale.scaleToFitHeight(bitmap, 100);
-    public static Bitmap scaleToFitHeight(Bitmap b, int height)
-    {
+    public static Bitmap scaleToFitHeight(Bitmap b, int height) {
         float factor = height / (float) b.getHeight();
         return Bitmap.createScaledBitmap(b, (int) (b.getWidth() * factor), height, true);
     }
 
     /**
-     * Преобразование Bitmap в base64
-     * @param bitmap изображение
-     * @param quality качество
-     * @return
+     * Conversion Bitmap to base64
+     * @param bitmap  image
+     * @param quality quality of image
+     * @return base64 string
      */
     public static String toBase64(Bitmap bitmap, int quality) {
         ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
@@ -74,9 +60,9 @@ public class BitmapUtil {
     }
 
     /**
-     * Преобразование строке base64 в Bitmap
-     * @param base64 изображение в формате base64
-     * @return
+     * Conversion Bitmap to base64
+     * @param base64  base64 String
+     * @return bitmap
      */
     public static Bitmap toBitmap(String base64) {
         byte[] decodedString = Base64.decode(base64, Base64.DEFAULT);
